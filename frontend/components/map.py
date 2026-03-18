@@ -1,31 +1,23 @@
 import streamlit as st
-import requests
 import folium
 from streamlit_folium import st_folium
+import api
 
 def show():
-    st.title("🗺️ City Safety Map")
-
+    st.subheader("City Safety Map")
     m = folium.Map(location=[12.9716, 77.5946], zoom_start=12)
-
-    try:
-        res = requests.get("http://127.0.0.1:8000/reports/")
-        data = res.json()
-
-        reports = data.get("reports", data)
-
-        for r in reports:
-            lat = r.get("lat")
-            lng = r.get("lng")
-
-            if lat and lng:
+    ok, payload = api.get_reports()
+    if ok:
+        reports = payload.get("reports", [])
+        for report in reports:
+            lat = report.get("lat")
+            lng = report.get("lng")
+            if lat is not None and lng is not None:
                 folium.Marker(
                     [lat, lng],
-                    popup=r.get("description", "Report"),
+                    popup=report.get("description", "Report"),
                     icon=folium.Icon(color="red")
                 ).add_to(m)
-
-    except:
-        st.warning("⚠️ Backend not running or no data")
-
-    st_folium(m, width=700, height=500, key="main_map")
+    else:
+        st.warning(f"Unable to load reports: {payload}")
+    st_folium(m, width=None, height=500, key="main_map")

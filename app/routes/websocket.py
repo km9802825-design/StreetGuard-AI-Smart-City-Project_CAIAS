@@ -9,10 +9,9 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             await websocket.receive_text()
-    except:
+    except Exception:
         connected_clients.remove(websocket)
 
-def broadcast(message: dict):
-    import asyncio
+async def broadcast(message: dict):
     for client in connected_clients:
-        asyncio.create_task(client.send_json(message))
+        await client.send_json(message)

@@ -1,7 +1,12 @@
 from fastapi import FastAPI
 from fastapi import WebSocket
+from dotenv import load_dotenv
 from app.routes import auth, reports, route, dashboard, emergency
 from app.routes.websocket import websocket_endpoint
+
+load_dotenv()
+load_dotenv("backend/.env")
+
 app = FastAPI(title="StreetGuard AI")
 
 app.include_router(auth.router, prefix="/auth")

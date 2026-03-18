@@ -1,26 +1,29 @@
 import streamlit as st
-import requests
+import api
+
 
 def show():
-    st.title("📍 Report Issue")
+    st.subheader("Create Incident Report")
+    col1, col2 = st.columns(2)
+    with col1:
+        user = st.text_input("Name", key="report_user")
+    with col2:
+        address = st.text_input("Location", key="report_loc")
+    description = st.text_area("Description", key="report_desc", height=120)
+    image = st.file_uploader("Attach image", type=["png", "jpg", "jpeg"])
 
-    user = st.text_input("👤 Name", key="report_user")
-    description = st.text_area("📝 Description", key="report_desc")
-    address = st.text_input("📍 Location", key="report_loc")
-
-    if st.button("Submit Report"):
+    if st.button("Submit report", use_container_width=True):
         if user and description and address:
-            try:
-                requests.post(
-                    "http://127.0.0.1:8000/reports/",
-                    data={
-                        "user": user,
-                        "description": description,
-                        "address": address
-                    }
-                )
-                st.success("✅ Report submitted")
-            except:
-                st.error("❌ Backend not running")
+            ok, payload = api.create_report(
+                user=user,
+                description=description,
+                address=address,
+                image_file=image
+            )
+            if ok:
+                st.success("Report submitted")
+                st.json(payload)
+            else:
+                st.error(f"Request failed: {payload}")
         else:
-            st.warning("⚠️ Fill all fields")
+            st.warning("Fill all required fields")

@@ -1,33 +1,32 @@
 import streamlit as st
-import requests
 import folium
 from streamlit_folium import st_folium
 from geopy.geocoders import Nominatim
+import api
 
 def show():
-    st.subheader("🧠 AI Safety Assistant")
+    st.subheader("AI Safety Assistant")
 
-    user_input = st.text_input("What did you see?", key="ai_input")
-    location = st.text_input("Enter location", key="ai_location")
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        user_input = st.text_input("What happened?", key="ai_input")
+    with col2:
+        location = st.text_input("Location", key="ai_location")
 
-    if st.button("🚀 Get Advice"):
+    if st.button("Get safety advice", use_container_width=True):
         if user_input:
-            res = requests.post(
-                "http://127.0.0.1:8000/ai",
-                json={"situation": f"{user_input} at {location}"}
-            )
-
-            if res.status_code == 200:
-                st.success("AI Advice")
-                st.write(res.json()["advice"])
+            situation = f"{user_input} at {location}".strip()
+            ok, payload = api.get_ai_advice(situation=situation)
+            if ok:
+                st.success("Advice")
+                st.write(payload.get("advice", "No advice returned"))
             else:
-                st.error("Backend error")
+                st.error(f"Request failed: {payload}")
         else:
-            st.warning("Enter situation")
+            st.warning("Enter a situation first")
 
-    # 📍 Map Section
     st.markdown("---")
-    st.subheader("📍 Location Map")
+    st.subheader("Location Map")
 
     lat, lng = 12.9716, 77.5946
 
@@ -37,15 +36,9 @@ def show():
             loc = geo.geocode(location)
             if loc:
                 lat, lng = loc.latitude, loc.longitude
-        except:
+        except Exception:
             pass
 
     m = folium.Map(location=[lat, lng], zoom_start=13)
-
-    folium.Marker(
-        [lat, lng],
-        popup=location if location else "Default Location",
-        icon=folium.Icon(color="blue")
-    ).add_to(m)
-
-    st_folium(m, width=900, height=400, key="ai_map_unique")
+    folium.Marker([lat, lng], popup=location if location else "Default Location", icon=folium.Icon(color="blue")).add_to(m)
+    st_folium(m, width=None, height=420, key="ai_map_unique")

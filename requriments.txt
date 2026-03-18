@@ -3,3 +3,9 @@ uvicorn
 python-dotenv
 python-multipart
 requests
+streamlit
+streamlit-folium
+folium
+geopy
+groq
+fastapi-mail
